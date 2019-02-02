@@ -8,6 +8,7 @@ import java.util.Map;
 public class HttpUtil extends HttpRequest {
 
     private LinkedHashMap<String, Object> paramMap = null;
+    private HttpManager httpManager = null;
 
 
     public HttpUtil addParam(String key, Object value) {
@@ -165,7 +166,9 @@ public class HttpUtil extends HttpRequest {
 
 
     public HttpResponse send() throws HttpExceptionHandler {
-        HttpManager httpManager = new HttpManager();
+        if (httpManager == null){
+            httpManager = new HttpManager();
+        }
         this.params = getRequestParams();
         this.url = toURL(this.url);
         if (this.httpMethod.equals(GET)){

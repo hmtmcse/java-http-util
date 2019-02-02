@@ -26,6 +26,7 @@ public class HttpRequest {
     protected List<RequestHeader> headers = new ArrayList<>();
     protected Boolean isEnableRedirectHandle = false;
     protected Boolean isDownload = false;
+    protected Boolean isEnableSession = false;
     protected String fileName;
     protected String defaultDownloadFileName = "download.dat";
     protected String filePath;
@@ -140,5 +141,13 @@ public class HttpRequest {
 
     public void setDefaultDownloadFileName(String defaultDownloadFileName) {
         this.defaultDownloadFileName = defaultDownloadFileName;
+    }
+
+    public Boolean getEnableSession() {
+        return isEnableSession;
+    }
+
+    public void setEnableSession(Boolean enableSession) {
+        isEnableSession = enableSession;
     }
 }

@@ -4,10 +4,7 @@ package com.hmtmcse.httputil;
 import com.hmtmcse.common.util.TMUtil;
 
 import java.io.*;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
-import java.net.URL;
+import java.net.*;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +16,7 @@ public class HttpManager {
     private final String INVALID_URL = "Invalid URL OR Server Down!";
     private final String URL_ERROR = "URL Not found.";
     private final String TIME_OUT = "Connection TimeOut!";
+    private CookieManager cookieManager = null;
 
     private String handleUrlRedirection(String url) throws IOException {
         URL httpUrl = new URL(url);
@@ -45,6 +43,15 @@ public class HttpManager {
     }
 
 
+    private void readCookie(){
+        List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
+        for (HttpCookie cookie : cookies) {
+            System.out.println(cookie.getDomain());
+            System.out.println(cookie);
+        }
+    }
+
+
     private Boolean streamToFile(String path, Integer bufferSize, InputStream inputStream) throws IOException {
         FileOutputStream outputStream = new FileOutputStream(path);
         int bytesRead = -1;
@@ -67,6 +74,13 @@ public class HttpManager {
         HttpResponse httpResponse = new HttpResponse();
         try {
             validateRequest(httpRequest);
+
+            if (httpRequest.getEnableSession()){
+                if (cookieManager == null){
+                    cookieManager = new CookieManager();
+                    CookieHandler.setDefault(cookieManager);
+                }
+            }
 
             if (httpRequest.isEnableRedirectHandle) {
                 httpRequest.url = handleUrlRedirection(httpRequest.url);
@@ -126,7 +140,6 @@ public class HttpManager {
             }else {
                 httpResponse.content = streamToText(httpURLConnection.getErrorStream());
             }
-
         } catch (ConnectException c) {
             throw new HttpExceptionHandler(TIME_OUT + ". Message: " + c.getLocalizedMessage());
         } catch (SocketTimeoutException s) {
