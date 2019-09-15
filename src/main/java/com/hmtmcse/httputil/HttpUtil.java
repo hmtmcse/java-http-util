@@ -9,6 +9,7 @@ public class HttpUtil extends HttpRequest {
 
     private LinkedHashMap<String, Object> paramMap = null;
     private HttpManager httpManager = null;
+    public String baseURL = null;
 
 
     public HttpUtil addParam(String key, Object value) {
@@ -59,16 +60,23 @@ public class HttpUtil extends HttpRequest {
         return null;
     }
 
+    public void setUrl(String url){
+        if (baseURL == null){
+            this.url = url;
+        }else{
+            this.url = urlConcat(baseURL, url);
+        }
+    }
 
 
     public HttpUtil post(String url) {
         httpMethod = POST;
-        this.url = url;
+        this.setUrl(url);
         return this;
     }
 
     public HttpUtil requestTo(String url) {
-        this.url = url;
+        this.setUrl(url);
         return this;
     }
 
@@ -77,7 +85,7 @@ public class HttpUtil extends HttpRequest {
         contextType = APPLICATION_JSON;
         httpMethod = POST;
         params = jsonString;
-        this.url = url;
+        this.setUrl(url);
         return this;
     }
 
@@ -88,7 +96,7 @@ public class HttpUtil extends HttpRequest {
 
 
     public HttpUtil download(String url, String savedPath, String fileName) {
-        this.url = url;
+        this.setUrl(url);
         this.fileName = fileName;
         this.filePath = savedPath;
         this.isDownload = true;
@@ -97,7 +105,7 @@ public class HttpUtil extends HttpRequest {
 
 
     public HttpUtil postDownload(String url, String savedPath, String fileName) {
-        this.url = url;
+        this.setUrl(url);
         httpMethod = POST;
         this.fileName = fileName;
         this.filePath = savedPath;
@@ -108,7 +116,7 @@ public class HttpUtil extends HttpRequest {
 
 
     public HttpUtil putDownload(String url, String savedPath, String fileName) {
-        this.url = url;
+        this.setUrl(url);
         httpMethod = PUT;
         this.fileName = fileName;
         this.filePath = savedPath;
@@ -117,8 +125,8 @@ public class HttpUtil extends HttpRequest {
     }
 
 
-    public HttpUtil get(String url) {
-        this.url = url;
+    public HttpUtil getRequest(String url) {
+        this.setUrl(url);
         return this;
     }
 
@@ -129,7 +137,7 @@ public class HttpUtil extends HttpRequest {
 
     public HttpUtil put(String url) {
         httpMethod = PUT;
-        this.url = url;
+        this.setUrl(url);
         return this;
     }
 
@@ -144,7 +152,7 @@ public class HttpUtil extends HttpRequest {
 
     public HttpUtil delete(String url) {
         httpMethod = DELETE;
-        this.url = url;
+        this.setUrl(url);
         return this;
     }
 
@@ -153,14 +161,14 @@ public class HttpUtil extends HttpRequest {
         contextType = APPLICATION_JSON;
         httpMethod = DELETE_POST;
         params = jsonString;
-        this.url = url;
+        this.setUrl(url);
         return this;
     }
 
 
     public HttpUtil deletePost(String url) {
         httpMethod = DELETE_POST;
-        this.url = url;
+        this.setUrl(url);
         return this;
     }
 
@@ -178,11 +186,15 @@ public class HttpUtil extends HttpRequest {
     }
 
     public static String urlConcat(String first, String second){
-        if (!first.endsWith("/") && !second.startsWith("/")){
-            return first + "/" + second;
-        }else{
-            return first + second;
+        if (first.endsWith("/")){
+            first = first.substring(0, first.length() - 1);
         }
+
+        if (second.startsWith("/")){
+            second = second.substring(1);
+        }
+
+        return first + "/" + second;
     }
 
 
