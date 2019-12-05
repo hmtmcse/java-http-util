@@ -3,12 +3,16 @@ package com.hmtmcse.httputil;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class HttpRequest {
 
     public static final String APPLICATION_FORM_URLENCODED = "application/x-www-form-urlencoded";
+    public static final String MULTIPART = "multipart/form-data; boundary=";
+    public static final String CONTENT_DSC_FORM_DATA = "Content-Disposition: form-data; ";
     public final static String APPLICATION_JSON = "application/json";
+    public final static String TEXT_PLAIN = "text/plain";
     public static final String POST = "POST";
     public static final String GET = "GET";
     public static final String PUT = "PUT";
@@ -30,6 +34,7 @@ public class HttpRequest {
     protected String fileName;
     protected String defaultDownloadFileName = "download.dat";
     protected String filePath;
+    public LinkedHashMap<String, Object> paramMap = null;
 
     public Integer getConnectionTimeout() {
         return connectionTimeout;

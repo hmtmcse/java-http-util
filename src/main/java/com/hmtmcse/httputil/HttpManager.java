@@ -5,6 +5,9 @@ import com.hmtmcse.common.util.TMUtil;
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +19,7 @@ public class HttpManager {
     private final String INVALID_URL = "Invalid URL OR Server Down!";
     private final String URL_ERROR = "URL Not found.";
     private final String TIME_OUT = "Connection TimeOut!";
+    private final String LINE_BREAK = "\r\n";
     private CookieManager cookieManager = null;
 
     private String handleUrlRedirection(String url) throws IOException {
@@ -66,6 +70,19 @@ public class HttpManager {
     private void validateRequest(HttpRequest httpRequest) throws HttpExceptionHandler {
         if (httpRequest.url == null || httpRequest.url.equals("")){
             throw new HttpExceptionHandler(URL_ERROR);
+        }
+    }
+
+
+    public UploadFileData getFileInfo(String location) {
+        UploadFileData uploadFileData = null;
+        try {
+            Path path = Paths.get(location);
+            uploadFileData = new UploadFileData(Files.probeContentType(path));
+            uploadFileData.setFileName(path.getFileName().toString());
+            return uploadFileData;
+        } catch (IOException e) {
+            return uploadFileData;
         }
     }
 

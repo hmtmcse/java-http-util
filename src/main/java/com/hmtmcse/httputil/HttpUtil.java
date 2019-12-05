@@ -7,7 +7,6 @@ import java.util.Map;
 
 public class HttpUtil extends HttpRequest {
 
-    private LinkedHashMap<String, Object> paramMap = null;
     private HttpManager httpManager = null;
     public String baseURL = null;
 
@@ -105,23 +104,14 @@ public class HttpUtil extends HttpRequest {
 
 
     public HttpUtil postDownload(String url, String savedPath, String fileName) {
-        this.setUrl(url);
         httpMethod = POST;
-        this.fileName = fileName;
-        this.filePath = savedPath;
-        this.isDownload = true;
-        return this;
+        return download(url, savedPath, fileName);
     }
 
 
-
     public HttpUtil putDownload(String url, String savedPath, String fileName) {
-        this.setUrl(url);
         httpMethod = PUT;
-        this.fileName = fileName;
-        this.filePath = savedPath;
-        this.isDownload = true;
-        return this;
+        return download(url, savedPath, fileName);
     }
 
 
