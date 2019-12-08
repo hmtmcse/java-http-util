@@ -13,11 +13,14 @@ public class HttpRequest {
     public static final String CONTENT_DSC_FORM_DATA = "Content-Disposition: form-data; ";
     public final static String APPLICATION_JSON = "application/json";
     public final static String TEXT_PLAIN = "text/plain";
+    public final static String CONTENT_TYPE = "Content-Type";
     public static final String POST = "POST";
     public static final String GET = "GET";
     public static final String PUT = "PUT";
     public static final String DELETE = "DELETE";
     public static final String DELETE_POST = "DELETE_POST";
+    public static final String MULTIPART_POST = "MULTIPART_POST";
+    public static final String MULTIPART_PUT = "MULTIPART_PUT";
 
     protected Integer connectionTimeout = 30000;
     protected Integer fileBufferSize = 1024;
@@ -26,6 +29,7 @@ public class HttpRequest {
     protected String httpMethod = GET;
     protected String url = null;
     protected String params = null;
+    public LinkedHashMap<String, Object> paramMap = null;
     protected String contextType = APPLICATION_FORM_URLENCODED;
     protected List<RequestHeader> headers = new ArrayList<>();
     protected Boolean isEnableRedirectHandle = false;
@@ -34,7 +38,7 @@ public class HttpRequest {
     protected String fileName;
     protected String defaultDownloadFileName = "download.dat";
     protected String filePath;
-    public LinkedHashMap<String, Object> paramMap = null;
+
 
     public Integer getConnectionTimeout() {
         return connectionTimeout;

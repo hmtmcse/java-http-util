@@ -8,10 +8,7 @@ import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public class HttpManager {
@@ -20,6 +17,7 @@ public class HttpManager {
     private final String URL_ERROR = "URL Not found.";
     private final String TIME_OUT = "Connection TimeOut!";
     private final String LINE_BREAK = "\r\n";
+    private final String BOUNDARY_SEP = "--";
     private CookieManager cookieManager = null;
 
     private String handleUrlRedirection(String url) throws IOException {
@@ -47,7 +45,7 @@ public class HttpManager {
     }
 
 
-    private void readCookie(){
+    private void readCookie() {
         List<HttpCookie> cookies = cookieManager.getCookieStore().getCookies();
         for (HttpCookie cookie : cookies) {
             System.out.println(cookie.getDomain());
@@ -68,7 +66,7 @@ public class HttpManager {
     }
 
     private void validateRequest(HttpRequest httpRequest) throws HttpExceptionHandler {
-        if (httpRequest.url == null || httpRequest.url.equals("")){
+        if (httpRequest.url == null || httpRequest.url.equals("")) {
             throw new HttpExceptionHandler(URL_ERROR);
         }
     }
@@ -80,9 +78,39 @@ public class HttpManager {
             Path path = Paths.get(location);
             uploadFileData = new UploadFileData(Files.probeContentType(path));
             uploadFileData.setFileName(path.getFileName().toString());
+            uploadFileData.fileBytes = Files.readAllBytes(path);
             return uploadFileData;
         } catch (IOException e) {
             return uploadFileData;
+        }
+    }
+
+    private void processMultipartInput(String boundary, DataOutputStream dataOutputStream, LinkedHashMap<String, Object> paramMap) throws IOException {
+        if (paramMap != null) {
+            UploadFileData uploadFileData;
+            Boolean isContentAdded = false;
+            for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
+                if (entry.getValue() instanceof File) {
+                    uploadFileData = getFileInfo(((File) entry.getValue()).getAbsolutePath());
+                    if (uploadFileData != null && uploadFileData.fileBytes != null) {
+                        dataOutputStream.writeBytes(BOUNDARY_SEP + boundary + LINE_BREAK);
+                        dataOutputStream.writeBytes(HttpRequest.CONTENT_DSC_FORM_DATA + "name=" + "\"" + entry.getKey() + "\"; " + "filename=" + "\"" + uploadFileData.fileName + "\"");
+                        dataOutputStream.writeBytes(LINE_BREAK + LINE_BREAK);
+                        dataOutputStream.write(uploadFileData.fileBytes);
+                        dataOutputStream.writeBytes(LINE_BREAK);
+                        isContentAdded = true;
+                    }
+                } else {
+                    dataOutputStream.writeBytes(BOUNDARY_SEP + boundary + LINE_BREAK);
+                    dataOutputStream.writeBytes(HttpRequest.CONTENT_DSC_FORM_DATA + "name=" + "\"" + entry.getKey() + "\"" + LINE_BREAK + LINE_BREAK);
+                    dataOutputStream.writeBytes(entry.getValue().toString());
+                    dataOutputStream.writeBytes(LINE_BREAK);
+                    isContentAdded = true;
+                }
+            }
+            if (isContentAdded) {
+                dataOutputStream.writeBytes(BOUNDARY_SEP + boundary + BOUNDARY_SEP + LINE_BREAK);
+            }
         }
     }
 
@@ -92,8 +120,8 @@ public class HttpManager {
         try {
             validateRequest(httpRequest);
 
-            if (httpRequest.getEnableSession()){
-                if (cookieManager == null){
+            if (httpRequest.getEnableSession()) {
+                if (cookieManager == null) {
                     cookieManager = new CookieManager();
                     CookieHandler.setDefault(cookieManager);
                 }
@@ -106,7 +134,7 @@ public class HttpManager {
             URL httpUrl = new URL(httpRequest.url);
             HttpURLConnection httpURLConnection = (HttpURLConnection) httpUrl.openConnection();
             httpURLConnection.setReadTimeout(httpRequest.connectionTimeout);
-            httpURLConnection.setRequestProperty("Content-Type", httpRequest.contextType);
+            httpURLConnection.setRequestProperty(HttpRequest.CONTENT_TYPE, httpRequest.contextType);
             httpURLConnection.setRequestProperty("User-Agent", httpRequest.userAgent);
 
             for (RequestHeader requestHeader : httpRequest.headers) {
@@ -114,19 +142,30 @@ public class HttpManager {
             }
 
             DataOutputStream dataOutputStream;
+            String boundary = BOUNDARY_SEP + BOUNDARY_SEP + UUID.randomUUID().toString();
             switch (httpRequest.httpMethod) {
                 case HttpRequest.POST:
                 case HttpRequest.PUT:
                 case HttpRequest.DELETE_POST:
-                    if (httpRequest.httpMethod.equals(HttpRequest.DELETE_POST)){
+                case HttpRequest.MULTIPART_POST:
+                case HttpRequest.MULTIPART_PUT:
+                    if (httpRequest.httpMethod.equals(HttpRequest.DELETE_POST)) {
                         httpURLConnection.setRequestMethod(HttpRequest.DELETE);
-                    }else{
+                    } else if (httpRequest.httpMethod.equals(HttpRequest.MULTIPART_POST)) {
+                        httpURLConnection.setRequestMethod(HttpRequest.POST);
+                        httpURLConnection.setRequestProperty(HttpRequest.CONTENT_TYPE, HttpRequest.MULTIPART + boundary);
+                    } else if (httpRequest.httpMethod.equals(HttpRequest.MULTIPART_PUT)) {
+                        httpURLConnection.setRequestMethod(HttpRequest.PUT);
+                        httpURLConnection.setRequestProperty(HttpRequest.CONTENT_TYPE, HttpRequest.MULTIPART + boundary);
+                    } else {
                         httpURLConnection.setRequestMethod(httpRequest.httpMethod);
                     }
 
                     httpURLConnection.setDoOutput(true);
-                    dataOutputStream  = new DataOutputStream(httpURLConnection.getOutputStream());
-                    if (httpRequest.params != null){
+                    dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
+                    if (httpRequest.paramMap != null && (httpRequest.httpMethod.equals(HttpRequest.MULTIPART_POST) || httpRequest.httpMethod.equals(HttpRequest.MULTIPART_PUT))) {
+                        this.processMultipartInput(boundary, dataOutputStream, httpRequest.paramMap);
+                    } else if (httpRequest.params != null) {
                         dataOutputStream.writeBytes(httpRequest.params);
                     }
                     dataOutputStream.flush();
@@ -139,22 +178,22 @@ public class HttpManager {
 
             httpResponse.setHttpCode(httpURLConnection.getResponseCode());
             if (httpResponse.getHttpCode() >= 200 && 300 > httpResponse.getHttpCode()) {
-                if (!httpRequest.isDownload){
+                if (!httpRequest.isDownload) {
                     httpResponse.content = streamToText(httpURLConnection.getInputStream());
-                }else if (httpRequest.isDownload && httpRequest.filePath != null){
-                   if (httpRequest.fileName == null){
-                       httpRequest.fileName = httpRequest.defaultDownloadFileName;
-                       String fileName = httpURLConnection.getHeaderField("Content-Disposition");
-                       if(fileName != null){
-                           int index = fileName.indexOf("filename=");
-                           if (index > 0) {
-                               httpRequest.fileName = fileName.substring(index + 10, fileName.length() - 1);
-                           }
-                       }
-                   }
-                   streamToFile(TMUtil.concatLocation(httpRequest.filePath, httpRequest.fileName), httpRequest.fileBufferSize, httpURLConnection.getInputStream());
+                } else if (httpRequest.isDownload && httpRequest.filePath != null) {
+                    if (httpRequest.fileName == null) {
+                        httpRequest.fileName = httpRequest.defaultDownloadFileName;
+                        String fileName = httpURLConnection.getHeaderField("Content-Disposition");
+                        if (fileName != null) {
+                            int index = fileName.indexOf("filename=");
+                            if (index > 0) {
+                                httpRequest.fileName = fileName.substring(index + 10, fileName.length() - 1);
+                            }
+                        }
+                    }
+                    streamToFile(TMUtil.concatLocation(httpRequest.filePath, httpRequest.fileName), httpRequest.fileBufferSize, httpURLConnection.getInputStream());
                 }
-            }else {
+            } else {
                 httpResponse.content = streamToText(httpURLConnection.getErrorStream());
             }
         } catch (ConnectException c) {

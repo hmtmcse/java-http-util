@@ -162,6 +162,18 @@ public class HttpUtil extends HttpRequest {
         return this;
     }
 
+    public HttpUtil multipartPost(String url) {
+        httpMethod = MULTIPART_POST;
+        this.setUrl(url);
+        return this;
+    }
+
+    public HttpUtil multipartPut(String url) {
+        httpMethod = MULTIPART_PUT;
+        this.setUrl(url);
+        return this;
+    }
+
 
     public HttpResponse send() throws HttpExceptionHandler {
         if (httpManager == null){

@@ -4,6 +4,7 @@ public class UploadFileData {
 
     public String mimeType;
     public String fileName;
+    public byte [] fileBytes;
 
     public UploadFileData() {}
 
@@ -31,6 +32,15 @@ public class UploadFileData {
 
     public UploadFileData setFileName(String fileName) {
         this.fileName = fileName;
+        return this;
+    }
+
+    public byte[] getFileBytes() {
+        return fileBytes;
+    }
+
+    public UploadFileData setFileBytes(byte[] fileBytes) {
+        this.fileBytes = fileBytes;
         return this;
     }
 }
