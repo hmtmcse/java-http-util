@@ -1,8 +1,6 @@
 package com.hmtmcse.httputil;
 
 
-import com.hmtmcse.common.util.TMUtil;
-
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
@@ -50,6 +48,14 @@ public class HttpManager {
         for (HttpCookie cookie : cookies) {
             System.out.println(cookie.getDomain());
             System.out.println(cookie);
+        }
+    }
+
+    private String concatLocation(String first, String second){
+        if (first.endsWith("/") || first.endsWith("\\")){
+            return first + second;
+        }else {
+            return first + File.separator + second;
         }
     }
 
@@ -191,7 +197,7 @@ public class HttpManager {
                             }
                         }
                     }
-                    streamToFile(TMUtil.concatLocation(httpRequest.filePath, httpRequest.fileName), httpRequest.fileBufferSize, httpURLConnection.getInputStream());
+                    streamToFile(concatLocation(httpRequest.filePath, httpRequest.fileName), httpRequest.fileBufferSize, httpURLConnection.getInputStream());
                 }
             } else {
                 httpResponse.content = streamToText(httpURLConnection.getErrorStream());

@@ -5,7 +5,7 @@ import spock.lang.Specification
 
 class HttpRequestTest extends Specification {
 
-    public static baseUrl = "http://localhost:8080/requestTesting/"
+    public static String baseUrl = "http://localhost:8080/requestTesting/"
 
 
     def "GET Request to Server"() {
