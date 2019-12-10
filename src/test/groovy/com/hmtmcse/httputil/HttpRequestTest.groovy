@@ -148,6 +148,20 @@ class HttpRequestTest extends Specification {
         }
     }
 
+    def "Upload POST Without file Request to Server Multipart"(){
+        expect: "Http Multipart Post Request without file Test"
+        try {
+            HttpUtil httpUtil = new HttpUtil();
+            httpUtil.multipartPost(baseUrl + "httpMultipartPostWithoutFileRequest");
+            httpUtil.addParam("name", "Touhid Mia");
+            HttpResponse response = httpUtil.send();
+            System.out.println(response.getHttpCode());
+            System.out.println(response.getContent());
+        } catch (HttpExceptionHandler e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
 
     def "Upload Put Request to Server Multipart"(){
         expect: "Http Multipart Put Request Test"
