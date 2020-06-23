@@ -3,6 +3,7 @@ package com.hmtmcse.httputil;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -142,6 +143,7 @@ public class HttpManager {
             httpURLConnection.setReadTimeout(httpRequest.connectionTimeout);
             httpURLConnection.setRequestProperty(HttpRequest.CONTENT_TYPE, httpRequest.contextType);
             httpURLConnection.setRequestProperty("User-Agent", httpRequest.userAgent);
+            httpURLConnection.setRequestProperty("Accept-Charset", httpRequest.acceptCharset);
 
             for (RequestHeader requestHeader : httpRequest.headers) {
                 httpURLConnection.setRequestProperty(requestHeader.key, requestHeader.value);
@@ -172,7 +174,8 @@ public class HttpManager {
                     if (httpRequest.paramMap != null && (httpRequest.httpMethod.equals(HttpRequest.MULTIPART_POST) || httpRequest.httpMethod.equals(HttpRequest.MULTIPART_PUT))) {
                         this.processMultipartInput(boundary, dataOutputStream, httpRequest.paramMap);
                     } else if (httpRequest.params != null) {
-                        dataOutputStream.writeBytes(httpRequest.params);
+                        byte[] utf8Params = httpRequest.params.getBytes(StandardCharsets.UTF_8);
+                        dataOutputStream.write(utf8Params, 0, utf8Params.length);
                     }
                     dataOutputStream.flush();
                     dataOutputStream.close();

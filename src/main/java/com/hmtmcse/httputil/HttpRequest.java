@@ -25,6 +25,7 @@ public class HttpRequest {
     protected Integer connectionTimeout = 30000;
     protected Integer fileBufferSize = 1024;
     protected String userAgent = "HMTMCSE/1.0";
+    protected String acceptCharset = "UTF-8";
 
     protected String httpMethod = GET;
     protected String url = null;
