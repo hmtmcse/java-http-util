@@ -24,7 +24,7 @@ dependencies {
     }
 }
 
-Boolean isPublish = true
+Boolean isPublish = false
 if (isPublish) {
     bintray {
 
