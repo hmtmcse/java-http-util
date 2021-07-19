@@ -24,7 +24,7 @@ dependencies {
     }
 }
 
-Boolean isPublish = false
+Boolean isPublish = true
 if (isPublish) {
     bintray {
 
@@ -41,13 +41,30 @@ if (isPublish) {
         }
     }
 
+    task javadocJar(type: Jar) {
+        archiveClassifier = 'javadoc'
+        from javadoc
+    }
+
     publishing {
+
+        repositories {
+            maven {
+                credentials {
+                    username = (project.hasProperty('ossrhUsername') ? project.property('ossrhUsername') : "hmtmcse" )
+                    password = (project.hasProperty('ossrhPassword') ? project.property('ossrhPassword') : "123" )
+                }
+                url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+            }
+        }
+
         publications {
             mavenJava(MavenPublication) {
                 artifactId = 'java-http-util'
-                groupId = 'com.hmtmcse'
+                groupId = 'com.hmtmcse.httputil'
                 from components.java
                 artifact sourcesJar
+                artifact javadocJar
                 versionMapping {
                     usage('java-api') {
                         fromResolutionOf('runtimeClasspath')
