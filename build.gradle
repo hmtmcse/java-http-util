@@ -41,11 +41,6 @@ if (isPublish) {
         }
     }
 
-    task javadocJar(type: Jar) {
-        archiveClassifier = 'javadoc'
-        from javadoc
-    }
-
     publishing {
 
         repositories {
